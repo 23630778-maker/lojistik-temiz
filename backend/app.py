@@ -1,14 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from datetime import datetime
 import os
-import io
-import json
-import openpyxl
-from openpyxl import Workbook, load_workbook
 import shutil
+from openpyxl import Workbook, load_workbook
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
+import io
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -19,6 +17,7 @@ app.secret_key = "supersecretkey"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EXCEL_FILE_LOCAL = os.path.join(BASE_DIR, "lojistik.xlsx")
 EXCEL_FILE_ONEDRIVE = os.path.join(BASE_DIR, "OneDrive_lojistik.xlsx")
+SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, "service_account.json")
 
 # -------------------------
 # Google Drive ayarları
@@ -30,15 +29,9 @@ SCOPES = ['https://www.googleapis.com/auth/drive.file']
 # Google Drive servis fonksiyonları
 # -------------------------
 def get_drive_service():
-    credentials_json = os.environ.get("GOOGLE_CREDENTIALS_JSON")
-    if not credentials_json:
-        raise Exception("GOOGLE_CREDENTIALS_JSON environment variable bulunamadı")
-    
-    credentials_info = json.loads(credentials_json)
-    if "private_key" in credentials_info and "\\n" in credentials_info["private_key"]:
-        credentials_info["private_key"] = credentials_info["private_key"].replace("\\n", "\n")
-    
-    creds = service_account.Credentials.from_service_account_info(credentials_info, scopes=SCOPES)
+    creds = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
     service = build('drive', 'v3', credentials=creds)
     return service
 
@@ -48,12 +41,9 @@ def download_excel(service, file_id):
     downloader = MediaIoBaseDownload(fh, request)
     done = False
     while not done:
-        status, done = downloader.next_chunk()
+        _, done = downloader.next_chunk()
     fh.seek(0)
-    try:
-        wb = openpyxl.load_workbook(fh)
-    except Exception as e:
-        raise Exception(f"Google Drive Excel yüklenemedi: {e}")
+    wb = load_workbook(fh)
     return wb
 
 def upload_excel(service, file_id, wb):

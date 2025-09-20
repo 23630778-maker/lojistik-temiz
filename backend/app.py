@@ -70,7 +70,7 @@ def upload_excel(service, file_id, wb):
 def form():
     if request.method == "POST":
         try:
-            # Form verilerini al, boşsa varsayılan ata
+            # Form verilerini al
             tarih = request.form.get("tarih") or datetime.now().strftime("%Y-%m-%d")
             iscikissaat = request.form.get("iscikissaat") or "00:00"
             plaka = request.form.get("plaka") or "Bilinmiyor"

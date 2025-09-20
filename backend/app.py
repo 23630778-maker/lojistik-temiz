@@ -6,7 +6,6 @@ import json
 import openpyxl
 from openpyxl import Workbook, load_workbook
 import shutil
-import tempfile
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
@@ -15,10 +14,11 @@ app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
 # -------------------------
-# Dosya yolları (geçici dizin)
+# Dosya yolları
 # -------------------------
-EXCEL_FILE_LOCAL = os.path.join(tempfile.gettempdir(), "lojistik.xlsx")
-EXCEL_FILE_ONEDRIVE = os.path.join(tempfile.gettempdir(), "OneDrive_lojistik.xlsx")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+EXCEL_FILE_LOCAL = os.path.join(BASE_DIR, "lojistik.xlsx")
+EXCEL_FILE_ONEDRIVE = os.path.join(BASE_DIR, "OneDrive_lojistik.xlsx")
 
 # -------------------------
 # Google Drive ayarları
@@ -48,7 +48,7 @@ def download_excel(service, file_id):
     downloader = MediaIoBaseDownload(fh, request)
     done = False
     while not done:
-        _, done = downloader.next_chunk()
+        status, done = downloader.next_chunk()
     fh.seek(0)
     try:
         wb = openpyxl.load_workbook(fh)
@@ -88,28 +88,27 @@ def form():
             # -------------------------
             # Lokal Excel kaydı
             # -------------------------
-            try:
-                if not os.path.exists(EXCEL_FILE_LOCAL):
-                    wb = Workbook()
-                    ws = wb.active
-                    ws.append([
-                        "tarih","iscikissaat","plaka","cikiskm","kumgirissaat",
-                        "giriskm","kumcikissaat","isletmegiriskm","isletmegirissaat",
-                        "farkkm","uretici","ureticikm","tonaj"
-                    ])
-                    wb.save(EXCEL_FILE_LOCAL)
-
-                wb = load_workbook(EXCEL_FILE_LOCAL)
+            if not os.path.exists(EXCEL_FILE_LOCAL):
+                wb = Workbook()
                 ws = wb.active
-                ws.append([tarih, iscikissaat, plaka, cikiskm, kumgirissaat,
-                           giriskm, kumcikissaat, isletmegiriskm, isletmegirissaat,
-                           farkkm, uretici, ureticikm, tonaj])
+                ws.append([
+                    "tarih","iscikissaat","plaka","cikiskm","kumgirissaat",
+                    "giriskm","kumcikissaat","isletmegiriskm","isletmegirissaat",
+                    "farkkm","uretici","ureticikm","tonaj"
+                ])
                 wb.save(EXCEL_FILE_LOCAL)
 
-                # OneDrive kopyası
-                shutil.copy(EXCEL_FILE_LOCAL, EXCEL_FILE_ONEDRIVE)
-            except Exception as e:
-                flash(f"Excel kaydetme hatası: {e}", "danger")
+            wb = load_workbook(EXCEL_FILE_LOCAL)
+            ws = wb.active
+            ws.append([
+                tarih, iscikissaat, plaka, cikiskm, kumgirissaat,
+                giriskm, kumcikissaat, isletmegiriskm, isletmegirissaat,
+                farkkm, uretici, ureticikm, tonaj
+            ])
+            wb.save(EXCEL_FILE_LOCAL)
+
+            # OneDrive kopyası
+            shutil.copy(EXCEL_FILE_LOCAL, EXCEL_FILE_ONEDRIVE)
 
             # -------------------------
             # Google Drive kaydı
@@ -118,9 +117,11 @@ def form():
                 service = get_drive_service()
                 wb_drive = download_excel(service, EXCEL_FILE_DRIVE_ID)
                 ws_drive = wb_drive.active
-                ws_drive.append([tarih, iscikissaat, plaka, cikiskm, kumgirissaat,
-                                 giriskm, kumcikissaat, isletmegiriskm, isletmegirissaat,
-                                 farkkm, uretici, ureticikm, tonaj])
+                ws_drive.append([
+                    tarih, iscikissaat, plaka, cikiskm, kumgirissaat,
+                    giriskm, kumcikissaat, isletmegiriskm, isletmegirissaat,
+                    farkkm, uretici, ureticikm, tonaj
+                ])
                 upload_excel(service, EXCEL_FILE_DRIVE_ID, wb_drive)
             except Exception as e:
                 flash(f"Google Drive’a kaydetme hatası: {e}", "warning")

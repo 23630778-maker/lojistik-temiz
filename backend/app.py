@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from datetime import datetime
 import os
 from openpyxl import Workbook, load_workbook
@@ -127,6 +127,11 @@ def form():
             return redirect(url_for("form"))
 
     return render_template("form.html")
+
+# Burada ekleme yaptık
+@app.route("/download")
+def download_excel_file():
+    return send_file(EXCEL_FILE_LOCAL, as_attachment=True)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

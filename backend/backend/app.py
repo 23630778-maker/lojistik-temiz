@@ -8,6 +8,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
 import io
+import pandas as pd  # ⬅️ verileri tablo olarak göstermek için eklendi
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -121,12 +122,22 @@ def form():
                 print(f"[Google Drive Genel Hatası] {e}")
 
             flash("Kayıt başarıyla eklendi!", "success")
-            return redirect(url_for("form"))
+            return redirect(url_for("veriler"))  # ⬅️ Kayıt sonrası veriler sayfasına yönlendir
         except Exception as e:
             flash(f"Hata oluştu: {e}", "danger")
             return redirect(url_for("form"))
 
     return render_template("form.html")
+
+@app.route("/veriler")
+def veriler():
+    if os.path.exists(EXCEL_FILE_LOCAL):
+        df = pd.read_excel(EXCEL_FILE_LOCAL)
+        tablo_html = df.to_html(classes="table table-striped", index=False)
+    else:
+        tablo_html = "<p>Henüz veri yok.</p>"
+
+    return render_template("veriler.html", tablo=tablo_html)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

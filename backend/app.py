@@ -8,7 +8,6 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
 import io
-import pandas as pd  # ⬅️ verileri tablo olarak göstermek için eklendi
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -18,8 +17,8 @@ EXCEL_FILE_LOCAL = os.path.join(BASE_DIR, "lojistik.xlsx")
 EXCEL_FILE_ONEDRIVE = os.path.join(BASE_DIR, "OneDrive_lojistik.xlsx")
 
 # Google Drive ayarları
-EXCEL_FILE_DRIVE_ID = "1Rvg3nQkHsVjh9QicnU5ViYvzJm1EwO8T"  # Drive'daki dosya ID
-JSON_PATH = os.path.join(BASE_DIR, "credentials.json")  # credentials.json dosya yolu
+EXCEL_FILE_DRIVE_ID = "1Rvg3nQkHsVjh9QicnU5ViYvzJm1EwO8T"  
+JSON_PATH = os.path.join(BASE_DIR, "credentials.json")  
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
 def get_drive_service():
@@ -122,22 +121,12 @@ def form():
                 print(f"[Google Drive Genel Hatası] {e}")
 
             flash("Kayıt başarıyla eklendi!", "success")
-            return redirect(url_for("veriler"))  # ⬅️ Kayıt sonrası veriler sayfasına yönlendir
+            return redirect(url_for("form")) 
         except Exception as e:
             flash(f"Hata oluştu: {e}", "danger")
             return redirect(url_for("form"))
 
     return render_template("form.html")
-
-@app.route("/veriler")
-def veriler():
-    if os.path.exists(EXCEL_FILE_LOCAL):
-        df = pd.read_excel(EXCEL_FILE_LOCAL)
-        tablo_html = df.to_html(classes="table table-striped", index=False)
-    else:
-        tablo_html = "<p>Henüz veri yok.</p>"
-
-    return render_template("veriler.html", tablo=tablo_html)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

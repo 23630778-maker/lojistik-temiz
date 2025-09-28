@@ -14,9 +14,11 @@ app.secret_key = "supersecretkey"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EXCEL_FILE_LOCAL = os.path.join(BASE_DIR, "lojistik.xlsx")
+EXCEL_FILE = os.path.abspath("lojistik.xlsx")
+print("Excel dosyası kaydedilen yol:", EXCEL_FILE)
 EXCEL_FILE_ONEDRIVE = os.path.join(BASE_DIR, "OneDrive_lojistik.xlsx")
 
-# Google Drive ayarları
+
 EXCEL_FILE_DRIVE_ID = "1Rvg3nQkHsVjh9QicnU5ViYvzJm1EwO8T"  
 JSON_PATH = os.path.join(BASE_DIR, "credentials.json")  
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]

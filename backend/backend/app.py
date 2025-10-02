@@ -4,10 +4,11 @@ import os
 from openpyxl import Workbook, load_workbook
 import shutil
 import json
+import io
+import base64
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
-import io
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -17,21 +18,26 @@ EXCEL_FILE_LOCAL = os.path.join(BASE_DIR, "lojistik.xlsx")
 EXCEL_FILE = os.path.abspath("lojistik.xlsx")
 print("Excel dosyası kaydedilen yol:", EXCEL_FILE)
 EXCEL_FILE_ONEDRIVE = os.path.join(BASE_DIR, "OneDrive_lojistik.xlsx")
-
-
 EXCEL_FILE_DRIVE_ID = "1Z6KU-IztPS9TxwjywDv3uidqyCRMPzqz"
-JSON_PATH = os.path.join(BASE_DIR, "credentials.json")  
+
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
 def get_drive_service():
-    with open(JSON_PATH, "r", encoding="utf-8") as f:
-        creds_info = json.load(f)
+    try:
+        # Ortam değişkeninden Base64 olarak Google credentials alınır
+        creds_base64 = os.environ.get("GOOGLE_CREDENTIALS")
+        if not creds_base64:
+            raise Exception("GOOGLE_CREDENTIALS ortam değişkeni tanımlı değil!")
 
-    if "private_key" in creds_info:
-        creds_info["private_key"] = creds_info["private_key"].replace("\\n", "\n")
+        creds_json = base64.b64decode(creds_base64).decode("utf-8")
+        creds_info = json.loads(creds_json)
 
-    creds = service_account.Credentials.from_service_account_info(creds_info, scopes=SCOPES)
-    return build("drive", "v3", credentials=creds)
+        creds = service_account.Credentials.from_service_account_info(creds_info, scopes=SCOPES)
+        service = build("drive", "v3", credentials=creds)
+        return service
+    except Exception as e:
+        print(f"[Google Drive Credential Hatası] {e}")
+        raise
 
 def download_excel(service, file_id):
     try:

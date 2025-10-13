@@ -20,12 +20,9 @@ print("Excel dosyası kaydedilen yol:", EXCEL_FILE)
 EXCEL_FILE_ONEDRIVE = os.path.join(BASE_DIR, "OneDrive_lojistik.xlsx")
 EXCEL_FILE_DRIVE_ID = "1Z6KU-IztPS9TxwjywDv3uidqyCRMPzqz"
 
-<<<<<<< HEAD:backend/backend/app.py
-
 EXCEL_FILE_DRIVE_ID = "1Z6KU-IztPS9TxwjywDv3uidqyCRMPzqz"
 JSON_PATH = os.path.join(BASE_DIR, "credentials.json")  
-=======
->>>>>>> d32764c (Google Drive Base64 ortam değişkeni ile entegre edildi):app.py
+
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
 def get_drive_service():
